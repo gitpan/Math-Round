@@ -10,19 +10,37 @@ require Exporter;
 @EXPORT = qw(round nearest);
 @EXPORT_OK = qw(round nearest round_even round_odd round_rand
    nearest_rand);
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 
+#--- Determine what value to use for "one-half".  Because of the
+#--- perversities of floating-point hardware, we must use a value
+#--- slightly larger than 1/2, but we want it to be stored exactly.
+#--- We accomplish this by determining the bit value of 0.5 and
+#--- increasing it by a small amount in a lower-order byte.
+#--- Since the lowest-order bits are still zero, the number is
+#--- mathematically exact.
+
+my $halfhex = unpack('H*', pack('d', 0.5));
+if (substr($halfhex,0,2) ne '00' && substr($halfhex, -2) eq '00') {
+   #--- It's big-endian.
+   substr($halfhex, -4) = '1000';
+} else {
+   #--- It's little-endian.
+   substr($halfhex, 0,4) = '0010';
+}
+
+my $half = unpack('d',pack('H*', $halfhex));
 
 sub round {
  my $x;
  my @res = ();
  foreach $x (@_) {
    if ($x >= 0) {
-      push @res, POSIX::floor($x + 0.5);
+      push @res, POSIX::floor($x + $half);
    } else {
-      push @res, POSIX::ceil($x - 0.5);
+      push @res, POSIX::ceil($x - $half);
    }
  }
  if (wantarray) { return @res; }
@@ -37,7 +55,7 @@ sub round_even {
    if ($fr == 0.5) {
       push @res, $sign * (($in % 2 == 0) ? $in : $in + 1);
    } else {
-      push @res, $sign * POSIX::floor(abs($x) + 0.5);
+      push @res, $sign * POSIX::floor(abs($x) + $half);
    }
  }
  if (wantarray) { return @res; }
@@ -52,7 +70,7 @@ sub round_odd {
    if ($fr == 0.5) {
       push @res, $sign * (($in % 2 == 1) ? $in : $in + 1);
    } else {
-      push @res, $sign * POSIX::floor(abs($x) + 0.5);
+      push @res, $sign * POSIX::floor(abs($x) + $half);
    }
  }
  if (wantarray) { return @res; }
@@ -67,7 +85,7 @@ sub round_rand {
    if ($fr == 0.5) {
       push @res, $sign * ((rand(4096) < 2048) ? $in : $in + 1);
    } else {
-      push @res, $sign * POSIX::floor(abs($x) + 0.5);
+      push @res, $sign * POSIX::floor(abs($x) + $half);
    }
  }
  if (wantarray) { return @res; }
@@ -95,9 +113,9 @@ sub nearest {
  $targ = abs($targ) if $targ < 0;
  foreach $x (@inputs) {
    if ($x >= 0) {
-      push @res, $targ * int(($x + 0.5 * $targ) / $targ);
+      push @res, $targ * int(($x + $half * $targ) / $targ);
    } else {
-      push @res, $targ * POSIX::ceil(($x - 0.5 * $targ) / $targ);
+      push @res, $targ * POSIX::ceil(($x - $half * $targ) / $targ);
    }
  }
  if (wantarray) { return @res; }
@@ -115,7 +133,7 @@ sub nearest_rand {
    if ($fr == 0.5 * $targ) {
       push @res, $sign * $targ * ((rand(4096) < 2048) ? $in : $in + 1);
    } else {
-      push @res, $sign * $targ * int((abs($x) + 0.5 * $targ) / $targ);
+      push @res, $sign * $targ * int((abs($x) + $half * $targ) / $targ);
    }
  }
  if (wantarray) { return @res; }
@@ -217,14 +235,18 @@ TARGET must be positive.
 In scalar context, returns a single value; in list context, returns
 a list of values.  Numbers that are halfway between two multiples
 of the target will be rounded up or down in a random fashion.
-For example, in a large number of trials, nearest(10, 45) will
+For example, in a large number of trials, C<nearest(10, 45)> will
 yield 40 half the time and 50 half the time.
 
 =back
 
 =head1 STANDARD FLOATING-POINT DISCLAIMER
 
-If the numbers to be rounded are stored as floating-point, they will
+Floating-point numbers are, of course, a rational subset of the real
+numbers, so calculations with them are not always exact.  In order to
+avoid surprises because of this, these routines use a value for
+one-half that is very slightly larger than 0.5.  Nevertheless,
+if the numbers to be rounded are stored as floating-point, they will
 be subject, as usual, to the mercies of your hardware, your C
 compiler, etc.  Thus, numbers that are supposed to be halfway between
 two others may be stored in a slightly different way and thus behave

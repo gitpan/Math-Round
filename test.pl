@@ -40,6 +40,7 @@ print "nearest..........";
 was_it_ok(6, nearest(20, 9) == 0 &&
   nearest(20, 10) == 20 &&
   nearest(20, 11) == 20 &&
+  sprintf("%.2f", nearest(0.01, 16.575)) eq "16.58" &&
   eq2(nearest(20, -98, -110), -100, -120) );
 
 print "nearest_rand.....";

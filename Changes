@@ -5,3 +5,8 @@ Revision history for Perl extension Math::Round.
 
 0.02  Thu Mar  8 14:16:16 2001
 	- Small cosmetic changes (e-mail address and such).
+
+0.03  Mon Sep 17 10:34:40 2001
+	- Now using a value for one-half that is slightly larger than
+	  0.5, to thwart the floating-point units.  Thanks to Paul
+	  Rohwer (pauldrohwer@yahoo.com) for pointing this out.
