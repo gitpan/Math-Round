@@ -12,8 +12,16 @@ round_odd: round; numbers ending in .5 go to the odd number
 round_rand: round; numbers ending in .5 go up or down randomly
 
 nearest: round to the nearest multiple of any number
+nearest_ceil: like nearest; numbers halfway between two multiples
+   go up
+nearest_floor: like nearest; numbers halfway between two multiples
+   go down
 nearest_rand: like nearest; numbers halfway between two multiples
    go up or down randomly
+
+Recent Changes
+==============
+Version 0.04: Added nearest_ceil and nearest_floor.
 
 How to Install
 ==============
@@ -24,7 +32,7 @@ How to Install
     make install
 
 
-Copyright © 2001 Geoffrey Rommel.  All rights reserved.
+Copyright © 2002 Geoffrey Rommel.  All rights reserved.
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 

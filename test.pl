@@ -3,7 +3,7 @@
 
 ################## We start with some black magic to print on failure.
 
-BEGIN { $| = 1; print "1..7\n"; }
+BEGIN { $| = 1; print "1..9\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Math::Round qw(:all);
 $loaded = 1;
@@ -43,8 +43,20 @@ was_it_ok(6, nearest(20, 9) == 0 &&
   sprintf("%.2f", nearest(0.01, 16.575)) eq "16.58" &&
   eq2(nearest(20, -98, -110), -100, -120) );
 
+print "nearest_ceil.....";
+was_it_ok(7, nearest_ceil(20, 9) == 0 &&
+  nearest_ceil(20, 10) == 20 &&
+  nearest_ceil(20, 11) == 20 &&
+  eq2(nearest_ceil(20, -98, -110), -100, -100) );
+
+print "nearest_floor....";
+was_it_ok(8, nearest_floor(20, 9) == 0 &&
+  nearest_floor(20, 10) == 0 &&
+  nearest_floor(20, 11) == 20 &&
+  eq2(nearest_floor(20, -98, -110), -100, -120) );
+
 print "nearest_rand.....";
-was_it_ok(7, nearest_rand(30, 44) == 30 &&
+was_it_ok(9, nearest_rand(30, 44) == 30 &&
   nearest_rand(30, 46) == 60 &&
   eq2(nearest_rand(30, -76, -112), -90, -120) );
 

@@ -10,3 +10,7 @@ Revision history for Perl extension Math::Round.
 	- Now using a value for one-half that is slightly larger than
 	  0.5, to thwart the floating-point units.  Thanks to Paul
 	  Rohwer (pauldrohwer@yahoo.com) for pointing this out.
+
+0.04  Mon Mar  4 11:33:15 2002
+	- Added nearest_ceil and nearest_floor at the suggestion of
+	  Charlie Kim (cckim@stanford.edu).

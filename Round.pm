@@ -9,18 +9,17 @@ require Exporter;
 @ISA = qw(Exporter AutoLoader);
 @EXPORT = qw(round nearest);
 @EXPORT_OK = qw(round nearest round_even round_odd round_rand
-   nearest_rand);
-$VERSION = '0.03';
+   nearest_ceil nearest_floor nearest_rand);
+$VERSION = '0.04';
 
 %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 
 #--- Determine what value to use for "one-half".  Because of the
 #--- perversities of floating-point hardware, we must use a value
-#--- slightly larger than 1/2, but we want it to be stored exactly.
-#--- We accomplish this by determining the bit value of 0.5 and
-#--- increasing it by a small amount in a lower-order byte.
-#--- Since the lowest-order bits are still zero, the number is
-#--- mathematically exact.
+#--- slightly larger than 1/2.  We accomplish this by determining
+#--- the bit value of 0.5 and increasing it by a small amount in a
+#--- lower-order byte.  Since the lowest-order bits are still zero,
+#--- the number is mathematically exact.
 
 my $halfhex = unpack('H*', pack('d', 0.5));
 if (substr($halfhex,0,2) ne '00' && substr($halfhex, -2) eq '00') {
@@ -43,8 +42,7 @@ sub round {
       push @res, POSIX::ceil($x - $half);
    }
  }
- if (wantarray) { return @res; }
- else           { return $res[0]; }
+ return (wantarray) ? @res : $res[0];
 }
 
 sub round_even {
@@ -58,8 +56,7 @@ sub round_even {
       push @res, $sign * POSIX::floor(abs($x) + $half);
    }
  }
- if (wantarray) { return @res; }
- else           { return $res[0]; }
+ return (wantarray) ? @res : $res[0];
 }
 
 sub round_odd {
@@ -73,8 +70,7 @@ sub round_odd {
       push @res, $sign * POSIX::floor(abs($x) + $half);
    }
  }
- if (wantarray) { return @res; }
- else           { return $res[0]; }
+ return (wantarray) ? @res : $res[0];
 }
 
 sub round_rand {
@@ -88,8 +84,7 @@ sub round_rand {
       push @res, $sign * POSIX::floor(abs($x) + $half);
    }
  }
- if (wantarray) { return @res; }
- else           { return $res[0]; }
+ return (wantarray) ? @res : $res[0];
 }
 
 #--- Separate a number into sign, integer, and fractional parts.
@@ -118,8 +113,36 @@ sub nearest {
       push @res, $targ * POSIX::ceil(($x - $half * $targ) / $targ);
    }
  }
- if (wantarray) { return @res; }
- else           { return $res[0]; }
+ return (wantarray) ? @res : $res[0];
+}
+
+# In the next two functions, the code for positive and negative numbers
+# turns out to be the same.  For negative numbers, the technique is not
+# exactly obvious; instead of floor(x+0.5), we are in effect taking
+# ceiling(x-0.5).
+
+sub nearest_ceil {
+ my ($targ, @inputs) = @_;
+ my @res = ();
+ my $x;
+
+ $targ = abs($targ) if $targ < 0;
+ foreach $x (@inputs) {
+    push @res, $targ * POSIX::floor(($x + $half * $targ) / $targ);
+ }
+ return (wantarray) ? @res : $res[0];
+}
+
+sub nearest_floor {
+ my ($targ, @inputs) = @_;
+ my @res = ();
+ my $x;
+
+ $targ = abs($targ) if $targ < 0;
+ foreach $x (@inputs) {
+    push @res, $targ * POSIX::ceil(($x - $half * $targ) / $targ);
+ }
+ return (wantarray) ? @res : $res[0];
 }
 
 sub nearest_rand {
@@ -136,8 +159,7 @@ sub nearest_rand {
       push @res, $sign * $targ * int((abs($x) + $half * $targ) / $targ);
    }
  }
- if (wantarray) { return @res; }
- else           { return $res[0]; }
+ return (wantarray) ? @res : $res[0];
 }
 
 #--- Separate a number into sign, "integer", and "fractional" parts
@@ -227,6 +249,32 @@ of the target will be rounded to infinity.  For example:
   nearest(25, 328)          325
   nearest(.1, 4.567)          4.6
   nearest(10, -45)          -50
+
+=item B<nearest_ceil> TARGET, LIST
+
+Rounds the number(s) to the nearest multiple of the target value.
+TARGET must be positive.
+In scalar context, returns a single value; in list context, returns
+a list of values.  Numbers that are halfway between two multiples
+of the target will be rounded to the ceiling, i.e. the next
+algebraically higher multiple.  For example:
+
+  nearest_ceil(10, 44)    yields  40
+  nearest_ceil(10, 45)            50
+  nearest_ceil(10, -45)          -40
+
+=item B<nearest_floor> TARGET, LIST
+
+Rounds the number(s) to the nearest multiple of the target value.
+TARGET must be positive.
+In scalar context, returns a single value; in list context, returns
+a list of values.  Numbers that are halfway between two multiples
+of the target will be rounded to the floor, i.e. the next
+algebraically lower multiple.  For example:
+
+  nearest_floor(10, 44)    yields  40
+  nearest_floor(10, 45)            40
+  nearest_floor(10, -45)          -50
 
 =item B<nearest_rand> TARGET, LIST
 
