@@ -10,7 +10,7 @@ require Exporter;
 @EXPORT = qw(round nearest);
 @EXPORT_OK = qw(round nearest round_even round_odd round_rand
    nearest_rand);
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 
@@ -232,7 +232,7 @@ surprisingly.
 
 =head1 AUTHOR
 
-Math::Round was written by Geoffrey Rommel E<lt>grommel@sears.comE<gt>
+Math::Round was written by Geoffrey Rommel E<lt>GROMMEL@cpan.orgE<gt>
 in October 2000.
 
 =cut
