@@ -1,0 +1,32 @@
+Math::Round -- Perl extension for rounding numbers
+
+Math::Round is a Perl module.  It supplies functions to round numbers,
+both positive and negative, in various ways.  This may seem like an
+odd thing to write a whole module for, but rounding can sometimes be
+a little tricky, so I thought some people might find this useful.
+
+round: round to the nearest integer; numbers ending in .5 go
+   "to infinity" (3.5 becomes 4, -3.5 becomes -4)
+round_even: round; numbers ending in .5 go to the even number
+round_odd: round; numbers ending in .5 go to the odd number
+round_rand: round; numbers ending in .5 go up or down randomly
+
+nearest: round to the nearest multiple of any number
+nearest_rand: like nearest; numbers halfway between two multiples
+   go up or down randomly
+
+How to Install
+==============
+
+    perl Makefile.PL
+    make
+    make test
+    make install
+
+
+Geoffrey Rommel
+Specialist
+Sears, Roebuck and Co.
+grommel@sears.com
+
+October 2000
