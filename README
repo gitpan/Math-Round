@@ -19,9 +19,13 @@ nearest_floor: like nearest; numbers halfway between two multiples
 nearest_rand: like nearest; numbers halfway between two multiples
    go up or down randomly
 
+nlowmult: next lower multiple of a number
+nhimult: next higher multiple of a number
+
 Recent Changes
 ==============
 Version 0.04: Added nearest_ceil and nearest_floor.
+Version 0.05: Added nlowmult and nhimult.
 
 How to Install
 ==============
@@ -37,7 +41,7 @@ This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 Geoffrey Rommel
-Solutions Consultant
+DBA Tech Consultant
 Sears, Roebuck and Co.
 GROMMEL@cpan.org
 

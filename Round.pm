@@ -9,8 +9,9 @@ require Exporter;
 @ISA = qw(Exporter AutoLoader);
 @EXPORT = qw(round nearest);
 @EXPORT_OK = qw(round nearest round_even round_odd round_rand
-   nearest_ceil nearest_floor nearest_rand);
-$VERSION = '0.04';
+   nearest_ceil nearest_floor nearest_rand
+   nlowmult nhimult );
+$VERSION = '0.05';
 
 %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 
@@ -162,6 +163,32 @@ sub nearest_rand {
  return (wantarray) ? @res : $res[0];
 }
 
+#--- Next lower multiple
+sub nlowmult {
+ my ($targ, @inputs) = @_;
+ my @res = ();
+ my $x;
+
+ $targ = abs($targ) if $targ < 0;
+ foreach $x (@inputs) {
+    push @res, $targ * POSIX::floor($x / $targ);
+ }
+ return (wantarray) ? @res : $res[0];
+}
+
+#--- Next higher multiple
+sub nhimult {
+ my ($targ, @inputs) = @_;
+ my @res = ();
+ my $x;
+
+ $targ = abs($targ) if $targ < 0;
+ foreach $x (@inputs) {
+    push @res, $targ * POSIX::ceil($x / $targ);
+ }
+ return (wantarray) ? @res : $res[0];
+}
+
 #--- Separate a number into sign, "integer", and "fractional" parts
 #--- for the 'nearest' calculation.  Return as a list.
 sub _sepnear {
@@ -285,6 +312,36 @@ a list of values.  Numbers that are halfway between two multiples
 of the target will be rounded up or down in a random fashion.
 For example, in a large number of trials, C<nearest(10, 45)> will
 yield 40 half the time and 50 half the time.
+
+=item B<nlowmult> TARGET, LIST
+
+Returns the next lower multiple of the number(s) in LIST.
+TARGET must be positive.
+In scalar context, returns a single value; in list context, returns
+a list of values.  Numbers that are between two multiples of the
+target will be adjusted to the nearest multiples of LIST that are
+algebraically lower. For example:
+
+  nlowmult(10, 44)    yields  40
+  nlowmult(10, 46)            40
+  nlowmult(25, 328)          325
+  nlowmult(.1, 4.567)          4.5
+  nlowmult(10, -41)          -50
+
+=item B<nhimult> TARGET, LIST
+
+Returns the next higher multiple of the number(s) in LIST.
+TARGET must be positive.
+In scalar context, returns a single value; in list context, returns
+a list of values.  Numbers that are between two multiples of the
+target will be adjusted to the nearest multiples of LIST that are
+algebraically higher. For example:
+
+  nhimult(10, 44)    yields  50
+  nhimult(10, 46)            50
+  nhimult(25, 328)          350
+  nhimult(.1, 4.512)          4.6
+  nhimult(10, -49)          -40
 
 =back
 

@@ -3,7 +3,7 @@
 
 ################## We start with some black magic to print on failure.
 
-BEGIN { $| = 1; print "1..9\n"; }
+BEGIN { $| = 1; print "1..11\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Math::Round qw(:all);
 $loaded = 1;
@@ -59,6 +59,16 @@ print "nearest_rand.....";
 was_it_ok(9, nearest_rand(30, 44) == 30 &&
   nearest_rand(30, 46) == 60 &&
   eq2(nearest_rand(30, -76, -112), -90, -120) );
+
+print "nlowmult.........";
+was_it_ok(10, nlowmult(10, 44) == 40 &&
+  nlowmult(10, 46) == 40 &&
+  eq2(nlowmult(30, -76, -91), -90, -120) );
+
+print "nhimult..........";
+was_it_ok(11, nhimult(10, 41) == 50 &&
+  nhimult(10, 49) == 50 &&
+  eq2(nhimult(30, -74, -119), -60, -90) );
 
 if ($failed == 0) { print "All tests successful.\n"; }
 else {
