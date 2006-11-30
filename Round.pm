@@ -11,80 +11,59 @@ require Exporter;
 @EXPORT_OK = qw(round nearest round_even round_odd round_rand
    nearest_ceil nearest_floor nearest_rand
    nlowmult nhimult );
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 %EXPORT_TAGS = ( all => [ @EXPORT_OK ] );
 
-#--- Determine what value to use for "one-half".  Because of the
-#--- perversities of floating-point hardware, we must use a value
-#--- slightly larger than 1/2.  We accomplish this by determining
-#--- the bit value of 0.5 and increasing it by a small amount in a
-#--- lower-order byte.  Since the lowest-order bits are still zero,
-#--- the number is mathematically exact.
+#--- Default value for "one-half". This is the lowest value that
+#--- gives acceptable results for test #6 in test.pl. See the pod
+#--- for more information.
 
-my $halfhex = unpack('H*', pack('d', 0.5));
-if (substr($halfhex,0,2) ne '00' && substr($halfhex, -2) eq '00') {
-   #--- It's big-endian.
-   substr($halfhex, -4) = '1000';
-} else {
-   #--- It's little-endian.
-   substr($halfhex, 0,4) = '0010';
-}
-
-my $half = unpack('d',pack('H*', $halfhex));
+$Math::Round::half = 0.50000000000008;
 
 sub round {
  my $x;
- my @res = ();
- foreach $x (@_) {
-   if ($x >= 0) {
-      push @res, POSIX::floor($x + $half);
-   } else {
-      push @res, POSIX::ceil($x - $half);
-   }
- }
+ my @res  = map {
+  if ($_ >= 0) { POSIX::floor($_ + $Math::Round::half); }
+     else { POSIX::ceil($_ - $Math::Round::half); }
+ } @_;
+
  return (wantarray) ? @res : $res[0];
 }
 
 sub round_even {
- my $x;
- my @res = ();
- foreach $x (@_) {
-   my ($sign, $in, $fr) = _sepnum($x);
+ my @res  = map {
+   my ($sign, $in, $fr) = _sepnum($_);
    if ($fr == 0.5) {
-      push @res, $sign * (($in % 2 == 0) ? $in : $in + 1);
+      $sign * (($in % 2 == 0) ? $in : $in + 1);
    } else {
-      push @res, $sign * POSIX::floor(abs($x) + $half);
+      $sign * POSIX::floor(abs($_) + $Math::Round::half);
    }
- }
+ } @_;
  return (wantarray) ? @res : $res[0];
 }
 
 sub round_odd {
- my $x;
- my @res = ();
- foreach $x (@_) {
-   my ($sign, $in, $fr) = _sepnum($x);
+ my @res  = map {
+   my ($sign, $in, $fr) = _sepnum($_);
    if ($fr == 0.5) {
-      push @res, $sign * (($in % 2 == 1) ? $in : $in + 1);
+      $sign * (($in % 2 == 1) ? $in : $in + 1);
    } else {
-      push @res, $sign * POSIX::floor(abs($x) + $half);
+      $sign * POSIX::floor(abs($_) + $Math::Round::half);
    }
- }
+ } @_;
  return (wantarray) ? @res : $res[0];
 }
 
 sub round_rand {
- my $x;
- my @res = ();
- foreach $x (@_) {
-   my ($sign, $in, $fr) = _sepnum($x);
+ my @res  = map {
+   my ($sign, $in, $fr) = _sepnum($_);
    if ($fr == 0.5) {
-      push @res, $sign * ((rand(4096) < 2048) ? $in : $in + 1);
+      $sign * ((rand(4096) < 2048) ? $in : $in + 1);
    } else {
-      push @res, $sign * POSIX::floor(abs($x) + $half);
+      $sign * POSIX::floor(abs($_) + $Math::Round::half);
    }
- }
+ } @_;
  return (wantarray) ? @res : $res[0];
 }
 
@@ -92,28 +71,21 @@ sub round_rand {
 #--- Return as a list.
 sub _sepnum {
  my $x = shift;
- my ($sign, $i);
- $sign = ($x >= 0) ? 1 : -1;
+ my $sign = ($x >= 0) ? 1 : -1;
  $x = abs($x);
- $i = int($x);
+ my $i = int($x);
  return ($sign, $i, $x - $i);
 }
 
 #------ "Nearest" routines (round to a multiple of any number)
 
 sub nearest {
- my ($targ, @inputs) = @_;
- my @res = ();
- my $x;
+ my $targ = abs(shift);
+ my @res  = map {
+  if ($_ >= 0) { $targ * int(($_ + $Math::Round::half * $targ) / $targ); }
+     else { $targ * POSIX::ceil(($_ - $Math::Round::half * $targ) / $targ); }
+ } @_;
 
- $targ = abs($targ) if $targ < 0;
- foreach $x (@inputs) {
-   if ($x >= 0) {
-      push @res, $targ * int(($x + $half * $targ) / $targ);
-   } else {
-      push @res, $targ * POSIX::ceil(($x - $half * $targ) / $targ);
-   }
- }
  return (wantarray) ? @res : $res[0];
 }
 
@@ -123,80 +95,56 @@ sub nearest {
 # ceiling(x-0.5).
 
 sub nearest_ceil {
- my ($targ, @inputs) = @_;
- my @res = ();
- my $x;
+    my $targ = abs(shift);
+    my @res  = map { $targ * POSIX::floor(($_ + $Math::Round::half * $targ) / $targ) } @_;
 
- $targ = abs($targ) if $targ < 0;
- foreach $x (@inputs) {
-    push @res, $targ * POSIX::floor(($x + $half * $targ) / $targ);
- }
- return (wantarray) ? @res : $res[0];
+    return wantarray ? @res : $res[0];
 }
 
 sub nearest_floor {
- my ($targ, @inputs) = @_;
- my @res = ();
- my $x;
+    my $targ = abs(shift);
+    my @res  = map { $targ * POSIX::ceil(($_ - $Math::Round::half * $targ) / $targ) } @_;
 
- $targ = abs($targ) if $targ < 0;
- foreach $x (@inputs) {
-    push @res, $targ * POSIX::ceil(($x - $half * $targ) / $targ);
- }
- return (wantarray) ? @res : $res[0];
+    return wantarray ? @res : $res[0];
 }
 
 sub nearest_rand {
- my ($targ, @inputs) = @_;
- my @res = ();
- my $x;
+ my $targ = abs(shift);
 
- $targ = abs($targ) if $targ < 0;
- foreach $x (@inputs) {
-   my ($sign, $in, $fr) = _sepnear($x, $targ);
+ my @res = map {
+   my ($sign, $in, $fr) = _sepnear($_, $targ);
    if ($fr == 0.5 * $targ) {
-      push @res, $sign * $targ * ((rand(4096) < 2048) ? $in : $in + 1);
+      $sign * $targ * ((rand(4096) < 2048) ? $in : $in + 1);
    } else {
-      push @res, $sign * $targ * int((abs($x) + $half * $targ) / $targ);
+      $sign * $targ * int((abs($_) + $Math::Round::half * $targ) / $targ);
    }
- }
+ } @_;
  return (wantarray) ? @res : $res[0];
 }
 
 #--- Next lower multiple
 sub nlowmult {
- my ($targ, @inputs) = @_;
- my @res = ();
- my $x;
+    my $targ = abs(shift);
+    my @res  = map { $targ * POSIX::floor($_ / $targ) } @_;
 
- $targ = abs($targ) if $targ < 0;
- foreach $x (@inputs) {
-    push @res, $targ * POSIX::floor($x / $targ);
- }
- return (wantarray) ? @res : $res[0];
+    return wantarray ? @res : $res[0];
 }
 
 #--- Next higher multiple
 sub nhimult {
- my ($targ, @inputs) = @_;
- my @res = ();
- my $x;
+    my $targ = abs(shift);
+    my @res  = map { $targ * POSIX::ceil($_ / $targ) } @_;
 
- $targ = abs($targ) if $targ < 0;
- foreach $x (@inputs) {
-    push @res, $targ * POSIX::ceil($x / $targ);
- }
- return (wantarray) ? @res : $res[0];
+    return wantarray ? @res : $res[0];
 }
 
 #--- Separate a number into sign, "integer", and "fractional" parts
 #--- for the 'nearest' calculation.  Return as a list.
 sub _sepnear {
  my ($x, $targ) = @_;
- my ($sign, $i);
- $sign = ($x >= 0) ? 1 : -1;
+ my $sign = ($x >= 0) ? 1 : -1;
  $x = abs($x);
- $i = int($x / $targ);
+ my $i = int($x / $targ);
  return ($sign, $i, $x - $i*$targ);
 }
 
@@ -345,17 +293,28 @@ algebraically higher. For example:
 
 =back
 
+=head1 VARIABLE
+
+The variable B<$Math::Round::half> is used by most routines in this
+module. Its value is very slightly larger than 0.5, for reasons
+explained below. If you find that your application does not deliver
+the expected results, you may reset this variable at will.
+
 =head1 STANDARD FLOATING-POINT DISCLAIMER
 
 Floating-point numbers are, of course, a rational subset of the real
-numbers, so calculations with them are not always exact.  In order to
-avoid surprises because of this, these routines use a value for
-one-half that is very slightly larger than 0.5.  Nevertheless,
+numbers, so calculations with them are not always exact.
+Numbers that are supposed to be halfway between
+two others may surprise you; for instance, 0.85 may not be exactly
+halfway between 0.8 and 0.9, and (0.75 - 0.7) may not be the same as
+(0.85 - 0.8).
+
+In order to give more predictable results, 
+these routines use a value for
+one-half that is slightly larger than 0.5.  Nevertheless,
 if the numbers to be rounded are stored as floating-point, they will
 be subject, as usual, to the mercies of your hardware, your C
-compiler, etc.  Thus, numbers that are supposed to be halfway between
-two others may be stored in a slightly different way and thus behave
-surprisingly.
+compiler, etc.
 
 =head1 AUTHOR
 

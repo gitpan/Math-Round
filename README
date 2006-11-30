@@ -26,6 +26,7 @@ Recent Changes
 ==============
 Version 0.04: Added nearest_ceil and nearest_floor.
 Version 0.05: Added nlowmult and nhimult.
+Version 0.06: Streamlined the code.
 
 How to Install
 ==============
