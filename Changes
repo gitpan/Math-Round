@@ -23,3 +23,8 @@ Revision history for Perl extension Math::Round.
 	- Streamlined the code. Thanks to Richard Jelinek of PetaMem.
 	- Made $half a package variable. Thanks to Ruud H. G. van Tol
 	  for pointing out some peculiarities of the rounding.
+
+0.07  Fri Jan  2 10:35:47 2015
+	- Perl 5.22 exports POSIX::round, so "use POSIX" had to be
+	  changed to "use POSIX ()". Thanks to Jarkko Hietaniemi and
+	  Slaven Rezic for the tip.
